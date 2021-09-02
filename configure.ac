@@ -129,12 +129,8 @@ bash_version=`$SH_PROG --version`
 [bash_minor=`$SH_PROG -c 'echo ${BASH_VERSINFO[1]}'`]
 bash_4_or_greater=no
 case "${bash_major}.${bash_minor}" in
-  'OK_BASH_VERS' | '4.1' | '4.2' | '4.3')
-    bash_4_or_greater=yes
-    ;;
   *)
-    AC_MSG_WARN([You have Bash $bash_version installed.])
-    AC_MSG_ERROR([This package is only known to work with Bash 4.1-4.4.])
+    bash_4_or_greater=yes
     ;;
 esac
 

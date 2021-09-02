@@ -1,4 +1,8 @@
 #!/bin/bash
+set -x
+export top_srcdir="$( dirname "${BASH_SOURCE[0]}" )"
+typeset -p 1>&2
+export PATH="$top_srcdir:$abs_top_srcdir:$ac_abs_top_srcdir:$SRCDIR:$top_srcdir:$PATH"
 if [[ $# != 2 ]]; then
     echo  >&2 "Usage $0 BASH_PROGRAM PREFIX"
     exit 3
@@ -17,7 +21,7 @@ if [[ -z $bash_loc ]] ; then
     exit 3
 fi
 
-check_loc=$(./compute-prefix.sh $SH_PROG)
+check_loc=$(command . compute-prefix.sh $SH_PROG)
 if [[ $PREFIX != $check_loc ]] ; then
     echo  >&2 "bash says prefix should be $check_loc. You gave $PREFIX"
     exit 4
