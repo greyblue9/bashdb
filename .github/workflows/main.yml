@@ -34,4 +34,16 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
-          bash ./autogen.sh && mkdir -p ../build/ && cd ../build/ && ( find ../src -name "*.sh" -printf 'ln -sf %p %P %P %f\n'  | sed -r -e ':a s~ \.\./([^ ]*) ([^ ]+/|)([^ /]+/)([^/ ]+) ~ ../../\1 \2\4 ~; ta; s~^(.*-sf \.\./[^ ]*) [^ ]+ ([^ ]*/|)([^ /]+) .*~mkdir -p \2 \&\& \1 \2\3 ~; tk; d; :k \~  ~d;' | bash -x -s --; ) && /data/media/0/src/bash/bashdb/src/configure --prefix=/usr --enable-debug --disable-silent-rules && remake --trace V=1; ln -sf ../src/*.sh ./; ( cd init && ln -sf ../../src/init/* ./; ) && eval  "$( bash -c "$( bash -x ./config.status -h 2>&1 | grep --line-buffered -Ee 'dir[a-zA-Z0-9_]*=([^.]|..)' | sed -r -e 's~^\+ ~~; tk; d; :k ' ); typeset -p srcdir PWD" | sed -r -e "s/-x PWD=/-- builddir=/; s/^declare -- //p; d"; )" && echo $'#!/bin/bash\n\necho "Script begin"\ntypeset -p -a\nvar=1\nfunction foo () {\n  echo "In function foo"\n  echo "var=$var"\n  typeset -v var\n  ((++var))\n  echo "var=$var"\n  typeset -v var\n  unset var\n  typeset -v var\n  return 0\n}\n\nfoo\nfoo\n' | tee /tmp/test_bashdb.sh && ./bashdb -- /tmp/test_bashdb.sh
+          srcdir="$( pwd )"; echo "In $srcdir";
+          sudo apt install -y -y remake
+          bash ./autogen.sh \
+            && mkdir -p ../build/ && cd ../build/ && (
+              find "../${srcdir##*/}" -name "*.sh" -printf 'ln -sf %p %P %P %f\n'  | sed -r -e ':a s~ \.\./([^ ]*) ([^ ]+/|)([^ /]+/)([^/ ]+) ~ ../../\1 \2\4 ~; ta; s~^(.*-sf \.\./[^ ]*) [^ ]+ ([^ ]*/|)([^ /]+) .*~mkdir -p \2 \&\& \1 \2\3 ~; tk; d; :k \~  ~d;' | bash -x -s --; 
+            ) \
+            && "$srcdir/configure" --prefix=/usr --enable-debug --disable-silent-rules \
+            && remake --trace V=1;
+          ln -sf ../src/*.sh ./;
+          ( cd init && ln -sf ../../src/init/* ./; ) \
+            && eval "$( bash -c "$( bash -x ./config.status -h 2>&1 | grep --line-buffered -Ee 'dir[a-zA-Z0-9_]*=([^.]|..)' | sed -r -e 's~^\+ ~~; tk; d; :k ' ); typeset -p srcdir PWD" | sed -r -e "s/-x PWD=/-- builddir=/; s/^declare -- //p; d"; )" && echo $'#!/bin/bash\n\necho "Script begin"\ntypeset -p -a\nvar=1\nfunction foo () {\n  echo "In function foo"\n  echo "var=$var"\n  typeset -v var\n  ((++var))\n  echo "var=$var"\n  typeset -v var\n  unset var\n  typeset -v var\n  return 0\n}\n\nfoo\nfoo\n' | tee /tmp/test_bashdb.sh \
+            && { { echo "s"; echo "s 8"; echo "i var"; } | ./bashdb  /tmp/test_bashdb.sh 2>&1 | grep -Fe "var=\"2\""; }./bashdb -- /tmp/test_bashdb.sh
+
